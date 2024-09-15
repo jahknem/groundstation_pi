@@ -3,3 +3,4 @@ uvicorn
 pyserial
 pygame
 pytest
+python-dotenv
