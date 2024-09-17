@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+"""
+File: controller.py
+Author: Jan Kühnemund
+Description: Controller for handling USB controller inputs.
+"""
+
 import pygame
 import logging
 

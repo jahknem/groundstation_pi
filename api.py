@@ -1,16 +1,37 @@
+#!/usr/bin/env python
+"""
+File: api.py
+Author: Jan Kühnemund
+Description: API for controlling the microcontroller via UART and WebSocket.
+"""
+
+from utils import setup_logging
+setup_logging()
+
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
 import logging
 from uart_comm import UARTCommunication
-from controller import USBController
+import asyncio
 
 app = FastAPI(
     title="Tracking Groundstation",
     description="API to control the microcontroller via UART",
     version="1.0.0"
 )
+
+# Allow CORS for all origins (adjust as needed)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Mount static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
@@ -20,8 +41,8 @@ uart_comm = UARTCommunication()
 if not uart_comm.is_connected():
     logging.error("UARTCommunication is not connected. UART port might be unavailable.")
 
-usb_controller = USBController()
-# Controller configuration remains as per your requirements
+# Store connected WebSocket clients
+connected_clients = set()
 
 # In-memory storage for mapping
 input_mapping = {}
@@ -64,6 +85,32 @@ async def websocket_endpoint(websocket: WebSocket):
             # Additional processing...
     except WebSocketDisconnect:
         logging.info("WebSocket disconnected")
+
+@app.on_event("startup")
+async def startup_event():
+    # Start the background task
+    asyncio.create_task(broadcast_position_updates())
+
+async def broadcast_position_updates():
+    """
+    Background task to broadcast position updates to all connected clients.
+    """
+    last_position = None
+    while True:
+        await asyncio.sleep(0.1)  # Adjust the interval as needed
+        current_position = uart_comm.get_current_position()
+        if current_position != last_position:
+            last_position = current_position
+            # Broadcast to all connected clients
+            message = {
+                'azimuth': current_position['azimuth'],
+                'elevation': current_position['elevation']
+            }
+            if connected_clients:
+                await asyncio.gather(
+                    *[client.send_json(message) for client in connected_clients]
+                )
+                logging.debug(f"Broadcasted position: {message}")
 
 @app.get("/status")
 def get_status():
