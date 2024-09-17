@@ -4,3 +4,6 @@ pyserial
 pygame
 pytest
 python-dotenv
+python-socketio[asyncio_server] 
+python-multipart
+jinja2

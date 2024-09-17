@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamepad Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        .button, .axis {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            display: inline-block;
+            width: 120px;
+            text-align: center;
+        }
+        .pressed {
+            background-color: lightgreen;
+        }
+        .axis-container, .button-container {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #000;
+        }
+        .axis-container h3, .button-container h3 {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gamepad Debugger</h1>
+    <p>Connect your gamepad and press any button to start.</p>
+    
+    <div id="gamepad-status">No gamepad connected.</div>
+
+    <div class="container">
+        <!-- Button Container -->
+        <div class="button-container">
+            <h3>Buttons</h3>
+            <div id="buttons"></div>
+        </div>
+
+        <!-- Axis Container -->
+        <div class="axis-container">
+            <h3>Axes</h3>
+            <div id="axes"></div>
+        </div>
+    </div>
+
+    <script>
+        let gamepadIndex = null;
+
+        // Detect when a gamepad is connected
+        window.addEventListener("gamepadconnected", function(event) {
+            const gamepad = event.gamepad;
+            gamepadIndex = gamepad.index;
+            document.getElementById('gamepad-status').textContent = `Gamepad connected: ${gamepad.id}`;
+            initializeController(gamepad);
+            updateGamepad();
+        });
+
+        // Detect when a gamepad is disconnected
+        window.addEventListener("gamepaddisconnected", function(event) {
+            document.getElementById('gamepad-status').textContent = 'No gamepad connected.';
+            document.getElementById('buttons').innerHTML = '';
+            document.getElementById('axes').innerHTML = '';
+            gamepadIndex = null;
+        });
+
+        // Initialize the controller interface to display buttons and axes
+        function initializeController(gamepad) {
+            const buttonsContainer = document.getElementById('buttons');
+            const axesContainer = document.getElementById('axes');
+
+            buttonsContainer.innerHTML = '';
+            axesContainer.innerHTML = '';
+
+            // Create elements for each button
+            gamepad.buttons.forEach((button, index) => {
+                const buttonDiv = document.createElement('div');
+                buttonDiv.id = `button-${index}`;
+                buttonDiv.classList.add('button');
+                buttonDiv.textContent = `Button ${index}: Released`;
+                buttonsContainer.appendChild(buttonDiv);
+            });
+
+            // Create elements for each axis
+            gamepad.axes.forEach((axis, index) => {
+                const axisDiv = document.createElement('div');
+                axisDiv.id = `axis-${index}`;
+                axisDiv.classList.add('axis');
+                axisDiv.textContent = `Axis ${index}: 0.00`;
+                axesContainer.appendChild(axisDiv);
+            });
+        }
+
+        // Update gamepad input values
+        function updateGamepad() {
+            if (gamepadIndex !== null) {
+                const gamepad = navigator.getGamepads()[gamepadIndex];
+
+
+                // Update button statuses
+                gamepad.buttons.forEach((button, index) => {
+                    const buttonDiv = document.getElementById(`button-${index}`);
+                    buttonDiv.textContent = `Button ${index}: ${button.pressed ? 'Pressed' : 'Released'}`;
+                    buttonDiv.classList.toggle('pressed', button.pressed);
+                });
+
+                // Update axis statuses
+                gamepad.axes.forEach((axis, index) => {
+                    const axisDiv = document.getElementById(`axis-${index}`);
+                    axisDiv.textContent = `Axis ${index}: ${axis.toFixed(2)}`;
+                });
+
+                // Request the next animation frame to update the inputs continuously
+                requestAnimationFrame(updateGamepad);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -9,6 +9,8 @@ class USBController:
         self.device_id = None
         self.joystick = None
         self.connected = False
+        self.button_mapping = {}
+        self.axis_mapping = {}
 
     def configure(self, device_id: int = 0):
         """
@@ -48,3 +50,26 @@ class USBController:
         for i in range(self.joystick.get_numbuttons()):
             buttons[f'button_{i}'] = self.joystick.get_button(i)
         return {'axes': axes, 'buttons': buttons}
+        
+    def set_button_mapping(self, mapping: dict):
+        """
+        Sets the mapping from controller buttons to actions.
+        """
+        self.button_mapping = mapping
+        logging.info(f"Button mapping set: {self.button_mapping}")
+
+    def set_axis_mapping(self, mapping: dict):
+        """
+        Sets the mapping from controller axes to actions.
+        """
+        self.axis_mapping = mapping
+        logging.info(f"Axis mapping set: {self.axis_mapping}")
+
+    def get_mapped_input(self):
+        """
+        Retrieves input and applies the user-defined mapping.
+        """
+        raw_input = self.get_input()
+        mapped_buttons = {self.button_mapping.get(k, k): v for k, v in raw_input['buttons'].items()}
+        mapped_axes = {self.axis_mapping.get(k, k): v for k, v in raw_input['axes'].items()}
+        return {'axes': mapped_axes, 'buttons': mapped_buttons}

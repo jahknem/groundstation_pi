@@ -7,16 +7,12 @@ from dotenv import load_dotenv
 
 load_dotenv() 
 
-print(f"Loaded UART_PORT: {os.getenv('UART_PORT')}")
-print(f"Loaded UART_BAUDRATE: {os.getenv('UART_BAUDRATE')}")
-print(f"Loaded UART_TIMEOUT: {os.getenv('UART_TIMEOUT')}")
-
 class UARTCommunication:
     """
     Handles UART communication with the microcontroller.
     """
     def __init__(self):
-        self.port = str({os.getenv('UART_PORT')})
+        self.port = str(os.getenv('UART_PORT'))
         self.baudrate = int(os.getenv('UART_BAUDRATE', '115200'))
         self.timeout = float(os.getenv('UART_TIMEOUT', '1')) 
         self.ser = None
