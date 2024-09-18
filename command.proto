@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package turret;
+
+message SetPositionCommand {
+    float azimuth = 1;
+    float elevation = 2;
+}
+
+message SetVelocityCommand {
+    float azimuth_velocity = 1;
+    float elevation_velocity = 2;
+}
+
+message GetPositionCommand {}
+
+message GetVelocityCommand {}
+
+message SetCalibrationCommand {
+    float azimuth = 1;
+    float elevation = 2;
+}
+
+message ResetCommand {}
+
+message Command {
+    oneof command_type {
+        SetPositionCommand set_position = 1;
+        SetVelocityCommand set_velocity = 2;
+        GetPositionCommand get_position = 3;
+        GetVelocityCommand get_velocity = 4;
+        SetCalibrationCommand set_calibration = 5;
+        ResetCommand reset = 6;
+    }
+}
